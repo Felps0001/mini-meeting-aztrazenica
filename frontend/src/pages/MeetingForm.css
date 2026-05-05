@@ -1,0 +1,2 @@
+.meeting-form { display: flex; flex-direction: column; }
+.meeting-form textarea { min-height: 90px; resize: vertical; }

@@ -1,0 +1,125 @@
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import './Meetings.css';
+
+const Meetings = () => {
+  const [meetings, setMeetings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  const fetchMeetings = () => {
+    setLoading(true);
+    api.get('/meetings').then(res => setMeetings(res.data)).catch(() => setError('Erro ao carregar meetings')).finally(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchMeetings(); }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Deseja excluir este meeting?')) return;
+    try {
+      await api.delete(`/meetings/${id}`);
+      fetchMeetings();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Erro ao excluir');
+    }
+  };
+
+  const handleStatusChange = async (id, status) => {
+    try {
+      await api.put(`/meetings/${id}`, { status });
+      fetchMeetings();
+    } catch {
+      alert('Erro ao atualizar status');
+    }
+  };
+
+  const copyInviteLink = (inviteToken) => {
+    const link = `${window.location.origin}/event/${inviteToken}`;
+    navigator.clipboard.writeText(link);
+    alert('Link de convite copiado!');
+  };
+
+  return (
+    <div className="app-layout">
+      <Navbar />
+      <main className="main-content">
+        <div className="page-header">
+          <h1>Mini-Meetings</h1>
+          <Link to="/meetings/new" className="btn-primary">+ Novo Meeting</Link>
+        </div>
+
+        {error && <div className="error-msg">{error}</div>}
+
+        {loading ? (
+          <div className="loading">Carregando...</div>
+        ) : meetings.length === 0 ? (
+          <div className="empty-state">
+            <p>Nenhum meeting cadastrado.</p>
+            <Link to="/meetings/new" className="btn-primary">Criar meeting</Link>
+          </div>
+        ) : (
+          <div className="meetings-table-wrap">
+            <table className="meetings-table">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Local</th>
+                  <th>Data</th>
+                  <th>Horário</th>
+                  {isAdmin && <th>Organizador</th>}
+                  <th>Participantes</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {meetings.map(m => (
+                  <tr key={m._id}>
+                    <td>
+                      <Link to={`/meetings/${m._id}`} className="meeting-link">{m.title}</Link>
+                    </td>
+                    <td>📍 {m.location}</td>
+                    <td>{format(new Date(m.date), "dd/MM/yyyy", { locale: ptBR })}</td>
+                    <td>{m.startTime}{m.endTime ? ` - ${m.endTime}` : ''}</td>
+                    {isAdmin && <td>{m.organizer?.name}</td>}
+                    <td><span className="attendee-count">👥 {m.attendees.length}</span></td>
+                    <td>
+                      <span className={`status-badge status-${m.status}`}>{m.status}</span>
+                    </td>
+                    <td className="actions-cell">
+                      <button className="btn-icon" title="Copiar link de convite" onClick={() => copyInviteLink(m.inviteToken)}>
+                        🔗
+                      </button>
+                      <button className="btn-icon" title="Editar" onClick={() => navigate(`/meetings/${m._id}/edit`)}>
+                        ✏️
+                      </button>
+                      {m.status === 'ativo' && (
+                        <button className="btn-icon btn-warn" title="Encerrar" onClick={() => handleStatusChange(m._id, 'encerrado')}>
+                          🔒
+                        </button>
+                      )}
+                      {isAdmin && (
+                        <button className="btn-icon btn-danger" title="Excluir" onClick={() => handleDelete(m._id)}>
+                          🗑️
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default Meetings;

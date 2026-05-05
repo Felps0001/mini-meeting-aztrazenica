@@ -1,0 +1,160 @@
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import api from '../services/api';
+import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import './MeetingDetail.css';
+
+const MeetingDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAdmin, user } = useAuth();
+  const [meeting, setMeeting] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    api.get(`/meetings/${id}`)
+      .then(res => setMeeting(res.data))
+      .catch(() => setError('Erro ao carregar meeting'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const copyInviteLink = () => {
+    const link = `${window.location.origin}/event/${meeting.inviteToken}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Excluir este meeting?')) return;
+    try {
+      await api.delete(`/meetings/${id}`);
+      navigate('/meetings');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Erro ao excluir');
+    }
+  };
+
+  const handleStatusChange = async (status) => {
+    try {
+      const res = await api.put(`/meetings/${id}`, { status });
+      setMeeting(res.data);
+    } catch {
+      alert('Erro ao atualizar status');
+    }
+  };
+
+  if (loading) return <div className="app-layout"><Navbar /><main className="main-content"><div className="loading">Carregando...</div></main></div>;
+  if (error) return <div className="app-layout"><Navbar /><main className="main-content"><div className="error-msg">{error}</div></main></div>;
+
+  const isOrganizer = meeting.organizer?._id === user?.id || meeting.organizer?.id === user?.id;
+  const canEdit = isAdmin || isOrganizer;
+
+  return (
+    <div className="app-layout">
+      <Navbar />
+      <main className="main-content">
+        <div className="page-header">
+          <div>
+            <Link to="/meetings" className="back-link">← Voltar</Link>
+            <h1>{meeting.title}</h1>
+          </div>
+          <div className="header-actions">
+            {meeting.status === 'ativo' && (
+              <button className="btn-invite" onClick={copyInviteLink}>
+                {copied ? '✅ Copiado!' : '🔗 Copiar link de convite'}
+              </button>
+            )}
+            {canEdit && (
+              <Link to={`/meetings/${id}/edit`} className="btn-secondary">✏️ Editar</Link>
+            )}
+            {isAdmin && (
+              <button className="btn-danger" onClick={handleDelete}>🗑️ Excluir</button>
+            )}
+          </div>
+        </div>
+
+        <div className="detail-grid">
+          <div className="detail-card">
+            <h3>Informações do Evento</h3>
+            <div className="detail-row">
+              <span className="detail-label">Status</span>
+              <span className={`status-badge status-${meeting.status}`}>{meeting.status}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">📍 Local</span>
+              <span>{meeting.location}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">📅 Data</span>
+              <span>{format(new Date(meeting.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">🕐 Horário</span>
+              <span>{meeting.startTime}{meeting.endTime ? ` às ${meeting.endTime}` : ''}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">👤 Organizador</span>
+              <span>{meeting.organizer?.name}</span>
+            </div>
+            {meeting.description && (
+              <div className="detail-row">
+                <span className="detail-label">📝 Descrição</span>
+                <span>{meeting.description}</span>
+              </div>
+            )}
+
+            {meeting.status === 'ativo' && canEdit && (
+              <div className="detail-row">
+                <button className="btn-warn" onClick={() => handleStatusChange('encerrado')}>
+                  🔒 Encerrar Meeting
+                </button>
+              </div>
+            )}
+
+            {meeting.status === 'ativo' && (
+              <div className="invite-link-box">
+                <p>Link de inscrição para participantes:</p>
+                <code>{`${window.location.origin}/event/${meeting.inviteToken}`}</code>
+                <button className="btn-small" onClick={copyInviteLink}>Copiar</button>
+              </div>
+            )}
+          </div>
+
+          <div className="detail-card">
+            <h3>Participantes ({meeting.attendees.length})</h3>
+            {meeting.attendees.length === 0 ? (
+              <p className="empty-text">Nenhum participante inscrito ainda.</p>
+            ) : (
+              <div className="attendees-list">
+                {meeting.attendees.map((att, idx) => (
+                  <div key={idx} className="attendee-item">
+                    <div className="attendee-info">
+                      <strong>{att.name}</strong>
+                      <span>{att.email}</span>
+                    </div>
+                    {att.signature && (
+                      <div className="attendee-signature">
+                        <img src={att.signature} alt={`Assinatura de ${att.name}`} />
+                      </div>
+                    )}
+                    <span className="attendee-date">
+                      {format(new Date(att.registeredAt), "dd/MM HH:mm")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default MeetingDetail;

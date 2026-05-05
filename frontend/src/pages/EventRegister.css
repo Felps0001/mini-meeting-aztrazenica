@@ -1,0 +1,56 @@
+.event-page {
+  min-height: 100vh; background: var(--gradient);
+  padding: 40px 20px; display: flex; justify-content: center;
+  position: relative;
+}
+.event-page::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 50% 50% at 20% 20%, rgba(255,255,255,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 55% at 80% 75%, rgba(0,0,0,.2) 0%, transparent 60%);
+  pointer-events: none;
+}
+.event-card {
+  background: rgba(15, 5, 30, 0.6);
+  border: 1px solid rgba(255,255,255,.18);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 22px; padding: 40px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.5);
+  width: 100%; max-width: 560px; height: fit-content;
+  position: relative;
+}
+.event-header { text-align: center; margin-bottom: 28px; }
+.event-icon { font-size: 52px; margin-bottom: 12px; }
+.event-header h1 { font-size: 22px; font-weight: 800; color: var(--white); }
+.event-description { color: rgba(255,255,255,.65); margin-top: 8px; font-size: 14px; }
+
+.event-info {
+  display: flex; flex-direction: column; gap: 10px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--radius); padding: 16px;
+  margin-bottom: 28px;
+}
+.event-info-item { display: flex; gap: 10px; font-size: 14px; color: rgba(255,255,255,.8); align-items: center; }
+
+.event-form h3 { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: var(--white); }
+
+.signature-container {
+  border: 1px solid rgba(255,255,255,.2); border-radius: var(--radius);
+  position: relative; background: rgba(255,255,255,.9); overflow: hidden;
+}
+.signature-canvas {
+  width: 100% !important;
+  height: 150px !important;
+  cursor: crosshair;
+  touch-action: none;
+}
+.btn-clear {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(255,255,255,.9); color: var(--danger); border: 1px solid rgba(255,77,109,.4);
+}
+.btn-clear:hover { background: #fff; }
+
+.sig-hint { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 6px; }
+.field-error { font-size: 12px; color: var(--danger); }

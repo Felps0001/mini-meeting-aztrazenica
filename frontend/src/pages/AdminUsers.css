@@ -1,0 +1,22 @@
+.invite-section {
+  background: var(--bg-card); border-radius: var(--radius-lg); padding: 24px;
+  box-shadow: var(--shadow); margin-bottom: 28px; max-width: 600px;
+  border: 1px solid var(--border); backdrop-filter: blur(12px);
+}
+.invite-section h3 { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--text-main); }
+.invite-form { display: flex; gap: 10px; }
+.invite-form input {
+  flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius);
+  font-size: 14px; outline: none; background: var(--bg-input); color: var(--text-main);
+}
+.invite-form input::placeholder { color: var(--text-dim); }
+.invite-form input:focus { border-color: var(--border-focus); }
+
+.invite-result { margin-top: 14px; padding: 12px 16px; border-radius: var(--radius); }
+.invite-result.success { background: rgba(0,229,160,.08); border: 1px solid rgba(0,229,160,.25); color: var(--success); }
+.invite-result.error { background: rgba(255,77,109,.08); border: 1px solid rgba(255,77,109,.25); color: var(--danger); }
+.invite-result p { font-size: 13px; margin-bottom: 8px; }
+.invite-link-display {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.invite-link-display code { font-size: 12px; color: #f48fb1; word-break: break-all; flex: 1; }
