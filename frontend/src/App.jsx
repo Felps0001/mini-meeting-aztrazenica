@@ -14,7 +14,7 @@ import EventRegister from './pages/EventRegister';
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           {/* Públicas */}
           <Route path="/login" element={<Login />} />

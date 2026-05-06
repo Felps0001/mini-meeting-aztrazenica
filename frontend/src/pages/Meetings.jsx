@@ -41,7 +41,7 @@ const Meetings = () => {
   };
 
   const copyInviteLink = (inviteToken) => {
-    const link = `${window.location.origin}/event/${inviteToken}`;
+    const link = `${window.location.origin}${import.meta.env.BASE_URL}event/${inviteToken}`;
     navigator.clipboard.writeText(link);
     alert('Link de convite copiado!');
   };

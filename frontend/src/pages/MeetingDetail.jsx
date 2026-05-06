@@ -24,7 +24,7 @@ const MeetingDetail = () => {
   }, [id]);
 
   const copyInviteLink = () => {
-    const link = `${window.location.origin}/event/${meeting.inviteToken}`;
+    const link = `${window.location.origin}${import.meta.env.BASE_URL}event/${meeting.inviteToken}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -120,7 +120,7 @@ const MeetingDetail = () => {
             {meeting.status === 'ativo' && (
               <div className="invite-link-box">
                 <p>Link de inscrição para participantes:</p>
-                <code>{`${window.location.origin}/event/${meeting.inviteToken}`}</code>
+                <code>{`${window.location.origin}${import.meta.env.BASE_URL}event/${meeting.inviteToken}`}</code>
                 <button className="btn-small" onClick={copyInviteLink}>Copiar</button>
               </div>
             )}
