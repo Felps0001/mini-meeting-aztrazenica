@@ -9,8 +9,11 @@ connectDB();
 
 app.use(cors({
   origin: (origin, cb) => {
-    // Permite qualquer origem localhost (dev) ou a CLIENT_URL configurada
-    if (!origin || origin === process.env.CLIENT_URL || /^http:\/\/localhost:\d+$/.test(origin)) {
+    const allowed = [
+      process.env.CLIENT_URL,
+      'https://felps0001.github.io',
+    ].filter(Boolean);
+    if (!origin || allowed.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
       return cb(null, true);
     }
     cb(new Error('CORS não permitido para: ' + origin));
