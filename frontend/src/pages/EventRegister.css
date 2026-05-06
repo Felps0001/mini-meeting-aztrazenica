@@ -59,13 +59,15 @@
 /* CRM unified input box */
 .crm-input-box {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-input);
   backdrop-filter: blur(4px);
   overflow: hidden;
   transition: border-color .2s, box-shadow .2s;
+  width: 100%;
+  box-sizing: border-box;
 }
 .crm-input-box:focus-within {
   border-color: var(--border-focus);
@@ -81,18 +83,20 @@
   letter-spacing: .5px;
   flex-shrink: 0;
 }
-.crm-number-input {
+/* override global .form-group input rules */
+.form-group .crm-input-box input.crm-number-input {
   flex: 1;
   min-width: 0;
-  width: auto !important;
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  padding: 11px 8px !important;
-  font-size: 15px !important;
+  width: auto;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: 11px 8px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 1.5px;
+  outline: none;
 }
 .crm-divider {
   width: 1px;
@@ -100,18 +104,20 @@
   background: rgba(255,255,255,.12);
   flex-shrink: 0;
 }
-.crm-uf-select {
-  width: 76px !important;
+/* override global .form-group select rules */
+.form-group .crm-input-box select.crm-uf-select {
+  width: 76px;
   flex-shrink: 0;
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  padding: 11px 10px !important;
-  font-size: 13px !important;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: 11px 6px;
+  font-size: 13px;
   font-weight: 600;
   text-align: center;
   cursor: pointer;
+  outline: none;
 }
 
 /* CRM validation feedback */
