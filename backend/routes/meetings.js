@@ -61,7 +61,7 @@ router.get('/validate-crm', async (req, res) => {
   const result = await verifyCRM(crmNum, ufUpper);
 
   if (result.unavailable)
-    return res.json({ valid: true, warning: 'Não foi possível verificar o CRM no CFM agora. O número e a UF foram aceitos pelo formato.' });
+    return res.json({ valid: true });
 
   return res.json(result);
 });

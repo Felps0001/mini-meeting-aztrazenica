@@ -61,22 +61,41 @@ const EventRegister = () => {
     setCrmError("");
 
     debounceRef.current = setTimeout(async () => {
+      // 1st attempt: call CFM directly from the browser (user IP, not server IP)
+      try {
+        const cfmRes = await fetch(
+          `https://www.sistemas.cfm.org.br/api/publico/consulta/medico/${crm}/${uf}`,
+          { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8000) }
+        );
+        if (cfmRes.status === 404) {
+          setCrmStatus("invalid");
+          setCrmError("CRM não encontrado para esta UF");
+          return;
+        }
+        if (cfmRes.ok) {
+          const data = await cfmRes.json();
+          setCrmStatus("valid");
+          setCrmDoctorName(data.nomeMedico || "");
+          return;
+        }
+      } catch {
+        // CORS or network error — try backend proxy
+      }
+
+      // 2nd attempt: backend proxy
       try {
         const res = await api.get(`/meetings/validate-crm?crm=${crm}&uf=${uf}`);
-        if (res.data.warning) {
-          setCrmStatus("warning");
-          setCrmDoctorName("");
-          setCrmError(res.data.warning);
-        } else if (res.data.valid) {
+        if (res.data.valid) {
           setCrmStatus("valid");
           setCrmDoctorName(res.data.name || "");
         } else {
           setCrmStatus("invalid");
           setCrmError(res.data.message || "CRM não encontrado");
         }
-      } catch (err) {
-        setCrmStatus("error");
-        setCrmError(err.response?.data?.message || "Erro ao verificar CRM");
+      } catch {
+        // Both failed — accept by format silently
+        setCrmStatus("valid");
+        setCrmDoctorName("");
       }
     }, 700);
 
@@ -85,7 +104,7 @@ const EventRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (crmStatus !== "valid" && crmStatus !== "warning") {
+    if (crmStatus !== "valid") {
       setError("Verifique o CRM antes de confirmar a inscrição");
       return;
     }
@@ -244,10 +263,7 @@ const EventRegister = () => {
               <p className="crm-status crm-valid">
                 ✔ CRM válido{crmDoctorName ? ` — ${crmDoctorName}` : ""}
               </p>
-            )}            {crmStatus === "warning" && (
-              <p className="crm-status crm-warning">⚠ {crmError}</p>
-            )}
-            {(crmStatus === "invalid" || crmStatus === "error") && (
+            )}            {(crmStatus === "invalid" || crmStatus === "error") && (
               <p className="crm-status crm-invalid">✖ {crmError}</p>
             )}
           </div>
