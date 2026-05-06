@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
+const axios = require('axios');
 const MiniMeeting = require('../models/MiniMeeting');
 const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
@@ -21,6 +22,27 @@ router.get('/', authMiddleware, async (req, res) => {
 const VALID_UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
   'PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
 
+const CFM_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Accept': 'application/json, text/plain, */*',
+  'Referer': 'https://portal.cfm.org.br/',
+  'Origin': 'https://portal.cfm.org.br'
+};
+
+async function verifyCRM(crmNum, ufUpper) {
+  try {
+    const { data, status } = await axios.get(
+      `https://www.sistemas.cfm.org.br/api/publico/consulta/medico/${crmNum}/${ufUpper}`,
+      { headers: CFM_HEADERS, timeout: 8000, validateStatus: () => true }
+    );
+    if (status === 404) return { valid: false, message: 'CRM não encontrado para esta UF' };
+    if (status !== 200) return { unavailable: true };
+    return { valid: true, name: data.nomeMedico || null, situation: data.situacao || null };
+  } catch {
+    return { unavailable: true };
+  }
+}
+
 router.get('/validate-crm', async (req, res) => {
   const { crm, uf } = req.query;
   if (!crm || !uf)
@@ -34,28 +56,12 @@ router.get('/validate-crm', async (req, res) => {
   if (!VALID_UFS.includes(ufUpper))
     return res.status(400).json({ message: 'UF inválida' });
 
-  try {
-    const cfmRes = await fetch(
-      `https://www.sistemas.cfm.org.br/api/publico/consulta/medico/${crmNum}/${ufUpper}`
-    );
+  const result = await verifyCRM(crmNum, ufUpper);
 
-    if (cfmRes.status === 404) {
-      return res.json({ valid: false, message: 'CRM não encontrado' });
-    }
+  if (result.unavailable)
+    return res.json({ valid: true, warning: 'Não foi possível verificar o CRM no CFM agora. O número e a UF foram aceitos pelo formato.' });
 
-    if (!cfmRes.ok) {
-      return res.status(502).json({ message: 'Serviço do CFM indisponível. Tente novamente.' });
-    }
-
-    const data = await cfmRes.json();
-    return res.json({
-      valid: true,
-      name: data.nomeMedico || null,
-      situation: data.situacao || null
-    });
-  } catch {
-    return res.status(502).json({ message: 'Não foi possível verificar o CRM. Tente novamente.' });
-  }
+  return res.json(result);
 });
 
 // GET /api/meetings/:id
@@ -187,15 +193,9 @@ router.post('/invite/:token/register', async (req, res) => {
       return res.status(400).json({ message: 'UF inválida' });
 
     // Validate CRM with CFM
-    try {
-      const cfmRes = await fetch(
-        `https://www.sistemas.cfm.org.br/api/publico/consulta/medico/${crmNum}/${ufUpper}`
-      );
-      if (!cfmRes.ok)
-        return res.status(400).json({ message: 'CRM não encontrado ou inválido no CFM' });
-    } catch {
-      return res.status(502).json({ message: 'Não foi possível verificar o CRM. Tente novamente.' });
-    }
+    const cfmResult = await verifyCRM(crmNum, ufUpper);
+    if (!cfmResult.unavailable && cfmResult.valid === false)
+      return res.status(400).json({ message: cfmResult.message || 'CRM não encontrado ou inválido no CFM' });
 
     const meeting = await MiniMeeting.findOne({ inviteToken: req.params.token });
     if (!meeting || meeting.status !== 'ativo')

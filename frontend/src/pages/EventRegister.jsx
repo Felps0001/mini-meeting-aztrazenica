@@ -63,7 +63,11 @@ const EventRegister = () => {
     debounceRef.current = setTimeout(async () => {
       try {
         const res = await api.get(`/meetings/validate-crm?crm=${crm}&uf=${uf}`);
-        if (res.data.valid) {
+        if (res.data.warning) {
+          setCrmStatus("warning");
+          setCrmDoctorName("");
+          setCrmError(res.data.warning);
+        } else if (res.data.valid) {
           setCrmStatus("valid");
           setCrmDoctorName(res.data.name || "");
         } else {
@@ -81,7 +85,7 @@ const EventRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (crmStatus !== "valid") {
+    if (crmStatus !== "valid" && crmStatus !== "warning") {
       setError("Verifique o CRM antes de confirmar a inscrição");
       return;
     }
@@ -241,6 +245,9 @@ const EventRegister = () => {
                 ✔ CRM válido{crmDoctorName ? ` — ${crmDoctorName}` : ""}
               </p>
             )}
+            {crmStatus === "warning" && (
+              <p className="crm-status crm-warning">⚠ {crmError}</p>
+            )}
             {(crmStatus === "invalid" || crmStatus === "error") && (
               <p className="crm-status crm-invalid">✖ {crmError}</p>
             )}
@@ -251,8 +258,7 @@ const EventRegister = () => {
           <button
             type="submit"
             className="btn-primary btn-full"
-            disabled={submitting || crmStatus === "checking" || crmStatus === "idle"}
-          >
+            disabled={submitting || crmStatus === "checking" || crmStatus === "idle"}          >
             {submitting
               ? "Inscrevendo..."
               : crmStatus === "checking"
