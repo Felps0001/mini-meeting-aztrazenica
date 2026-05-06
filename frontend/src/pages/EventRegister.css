@@ -37,6 +37,13 @@
 
 .event-form h3 { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: var(--white); }
 
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form-row-2 .form-group { margin-bottom: 0; }
+
 .signature-container {
   border: 1px solid rgba(255,255,255,.2); border-radius: var(--radius);
   position: relative; background: rgba(255,255,255,.9); overflow: hidden;

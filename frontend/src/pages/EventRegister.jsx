@@ -19,7 +19,7 @@ const EventRegister = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", crm: "", crmUf: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", crm: "", crmUf: "" });
 
   // CRM validation: 'idle' | 'checking' | 'valid' | 'invalid' | 'error'
   const [crmStatus, setCrmStatus] = useState("idle");
@@ -218,6 +218,36 @@ const EventRegister = () => {
               placeholder="seu@email.com"
               required
             />
+          </div>
+
+          <div className="form-row-2">
+            <div className="form-group">
+              <label>Telefone (DDD) *</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) =>
+                  setForm((p) => ({
+                    ...p,
+                    phone: e.target.value.replace(/\D/g, "").slice(0, 11),
+                  }))
+                }
+                placeholder="(11) 99999-9999"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Cidade *</label>
+              <input
+                type="text"
+                value={form.city}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, city: e.target.value }))
+                }
+                placeholder="Sua cidade"
+                required
+              />
+            </div>
           </div>
 
           <div className="form-group">

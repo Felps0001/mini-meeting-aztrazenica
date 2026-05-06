@@ -179,9 +179,15 @@ router.get('/invite/:token', async (req, res) => {
 // POST /api/meetings/invite/:token/register - inscrição pública
 router.post('/invite/:token/register', async (req, res) => {
   try {
-    const { name, email, crm, crmUf } = req.body;
+    const { name, email, crm, crmUf, phone, city } = req.body;
     if (!name || !email)
       return res.status(400).json({ message: 'Nome e email são obrigatórios' });
+
+    if (!phone)
+      return res.status(400).json({ message: 'Telefone é obrigatório' });
+
+    if (!city)
+      return res.status(400).json({ message: 'Cidade é obrigatória' });
 
     if (!crm || !crmUf)
       return res.status(400).json({ message: 'CRM e UF são obrigatórios' });
@@ -207,7 +213,7 @@ router.post('/invite/:token/register', async (req, res) => {
     if (alreadyRegistered)
       return res.status(400).json({ message: 'Este email já está inscrito neste evento' });
 
-    meeting.attendees.push({ name, email: email.toLowerCase(), crm: crmNum, crmUf: ufUpper });
+    meeting.attendees.push({ name, email: email.toLowerCase(), phone, city, crm: crmNum, crmUf: ufUpper });
     await meeting.save();
 
     res.json({ message: 'Inscrição realizada com sucesso!' });

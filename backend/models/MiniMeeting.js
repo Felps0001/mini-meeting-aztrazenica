@@ -5,6 +5,8 @@ const attendeeSchema = new mongoose.Schema({
   email: { type: String, required: true, lowercase: true, trim: true },
   crm: { type: String, trim: true },
   crmUf: { type: String, trim: true, uppercase: true },
+  phone: { type: String, trim: true },
+  city: { type: String, trim: true },
   signature: { type: String }, // base64 da assinatura
   registeredAt: { type: Date, default: Date.now }
 });
