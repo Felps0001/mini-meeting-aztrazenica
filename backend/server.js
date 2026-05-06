@@ -13,7 +13,7 @@ app.use(cors({
       process.env.CLIENT_URL,
       'https://felps0001.github.io',
     ].filter(Boolean);
-    if (!origin || allowed.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+    if (!origin || allowed.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) {
       return cb(null, true);
     }
     cb(new Error('CORS não permitido para: ' + origin));
