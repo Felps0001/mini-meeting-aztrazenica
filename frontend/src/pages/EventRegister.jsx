@@ -244,8 +244,7 @@ const EventRegister = () => {
               <p className="crm-status crm-valid">
                 ✔ CRM válido{crmDoctorName ? ` — ${crmDoctorName}` : ""}
               </p>
-            )}
-            {crmStatus === "warning" && (
+            )}            {crmStatus === "warning" && (
               <p className="crm-status crm-warning">⚠ {crmError}</p>
             )}
             {(crmStatus === "invalid" || crmStatus === "error") && (

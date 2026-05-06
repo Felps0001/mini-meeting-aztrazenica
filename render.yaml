@@ -22,3 +22,5 @@ services:
         sync: false
       - key: EMAIL_PASS
         sync: false
+      - key: CONSULTAR_IO_TOKEN
+        sync: false

@@ -18,26 +18,39 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/meetings/validate-crm?crm=123456&uf=SP  — proxy público para API do CFM
+// GET /api/meetings/validate-crm?crm=123456&uf=SP  — proxy para consultar.io
 const VALID_UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
   'PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
 
-const CFM_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-  'Accept': 'application/json, text/plain, */*',
-  'Referer': 'https://portal.cfm.org.br/',
-  'Origin': 'https://portal.cfm.org.br'
-};
-
 async function verifyCRM(crmNum, ufUpper) {
+  const token = process.env.CONSULTAR_IO_TOKEN;
+
+  if (!token) {
+    // Token não configurado — aceita pelo formato, exibe aviso
+    return { unavailable: true };
+  }
+
   try {
     const { data, status } = await axios.get(
-      `https://www.sistemas.cfm.org.br/api/publico/consulta/medico/${crmNum}/${ufUpper}`,
-      { headers: CFM_HEADERS, timeout: 8000, validateStatus: () => true }
+      'https://consultar.io/api/v1/crm/consultar',
+      {
+        params: { uf: ufUpper, numero_registro: crmNum },
+        headers: { Authorization: `Token ${token}` },
+        timeout: 30000,
+        validateStatus: () => true
+      }
     );
+
     if (status === 404) return { valid: false, message: 'CRM não encontrado para esta UF' };
+    if (status === 403) return { unavailable: true }; // créditos/plano — não bloqueia
     if (status !== 200) return { unavailable: true };
-    return { valid: true, name: data.nomeMedico || null, situation: data.situacao || null };
+
+    return {
+      valid: true,
+      name: data.nome_razao_social || null,
+      situation: data.situacao || null,
+      specialties: data.especialidades || null
+    };
   } catch {
     return { unavailable: true };
   }
