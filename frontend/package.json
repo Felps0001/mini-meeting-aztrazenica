@@ -17,7 +17,7 @@
     "preview": "vite preview",
     "deploy": "vite build && gh-pages -d dist"
   },
-  "homepage": "https://Felps0001.github.io/mini-meeting-aztrazeneca",
+  "homepage": "https://Felps0001.github.io/mini-meeting-astrazeneca",
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.1",
     "gh-pages": "^6.3.0",
