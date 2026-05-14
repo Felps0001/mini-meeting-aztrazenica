@@ -143,12 +143,18 @@ const MeetingDetail = () => {
             )}
 
             {meeting.status === "ativo" && canEdit && (
-              <div className="detail-row">
+              <div className="detail-row" style={{ gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   className="btn-warn"
                   onClick={() => handleStatusChange("encerrado")}
                 >
                   🔒 Encerrar Meeting
+                </button>
+                <button
+                  className="btn-danger"
+                  onClick={() => { if (window.confirm('Cancelar este meeting?')) handleStatusChange('cancelado'); }}
+                >
+                  ❌ Cancelar Meeting
                 </button>
               </div>
             )}

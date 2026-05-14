@@ -143,6 +143,11 @@ const Meetings = () => {
                           🔒
                         </button>
                       )}
+                      {m.status === 'ativo' && (
+                        <button className="btn-icon btn-danger" title="Cancelar" onClick={() => { if (window.confirm('Cancelar este meeting?')) handleStatusChange(m._id, 'cancelado'); }}>
+                          ❌
+                        </button>
+                      )}
                       {isAdmin && (
                         <button className="btn-icon btn-danger" title="Excluir" onClick={() => handleDelete(m._id)}>
                           🗑️
