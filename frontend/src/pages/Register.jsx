@@ -18,8 +18,7 @@ const Register = () => {
   useEffect(() => {
     const checkInvite = async () => {
       try {
-        const { data } = await api.get(`/auth/invite-info/${token}`);
-        setEmail(data.email);
+        await api.get(`/auth/invite-info/${token}`);
         setInviteValid(true);
       } catch (err) {
         setError(err.response?.data?.message || 'Convite inválido ou expirado');
@@ -33,11 +32,12 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!email) return setError('Email obrigatório');
     if (password !== confirm) return setError('As senhas não coincidem');
     if (password.length < 6) return setError('Senha mínima: 6 caracteres');
     setLoading(true);
     try {
-      await api.post('/auth/register', { token, name, password });
+      await api.post('/auth/register', { token, name, email, password });
       setSuccess(true);
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
@@ -74,7 +74,6 @@ const Register = () => {
       <div className="login-card">
         <div className="login-logo">📋</div>
         <h1 className="login-title">Criar Conta</h1>
-        <p className="login-subtitle">Convite para: <strong>{email}</strong></p>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label>Nome completo</label>
@@ -82,7 +81,7 @@ const Register = () => {
           </div>
           <div className="form-group">
             <label>Email</label>
-            <input type="email" value={email} disabled />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" required />
           </div>
           <div className="form-group">
             <label>Senha</label>

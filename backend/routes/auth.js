@@ -38,8 +38,8 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/register (via convite)
 router.post('/register', async (req, res) => {
   try {
-    const { token, name, password } = req.body;
-    if (!token || !name || !password)
+    const { token, name, email, password } = req.body;
+    if (!token || !name || !email || !password)
       return res.status(400).json({ message: 'Dados incompletos' });
 
     const invite = await Invite.findOne({ token, used: false });
@@ -49,13 +49,13 @@ router.post('/register', async (req, res) => {
     if (invite.expiresAt < new Date())
       return res.status(400).json({ message: 'Convite expirado' });
 
-    const existingUser = await User.findOne({ email: invite.email });
+    const existingUser = await User.findOne({ email });
     if (existingUser)
       return res.status(400).json({ message: 'Email já cadastrado' });
 
-    const user = await User.create({
+    await User.create({
       name,
-      email: invite.email,
+      email,
       password,
       role: 'user',
       invitedBy: invite.invitedBy
@@ -77,7 +77,7 @@ router.get('/invite-info/:token', async (req, res) => {
     if (!invite || invite.expiresAt < new Date())
       return res.status(400).json({ message: 'Convite inválido ou expirado' });
 
-    res.json({ email: invite.email });
+    res.json({ valid: true });
   } catch {
     res.status(500).json({ message: 'Erro interno' });
   }

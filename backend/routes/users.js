@@ -4,7 +4,6 @@ const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
 const Invite = require('../models/Invite');
 const { authMiddleware, adminMiddleware } = require('../middleware/auth');
-const { sendInviteEmail } = require('../utils/mailer');
 
 // GET /api/users - admin lista todos os usuários
 router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
@@ -16,30 +15,16 @@ router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/users/invite - admin envia convite por email
+// POST /api/users/invite - admin gera link de cadastro
 router.post('/invite', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: 'Email obrigatório' });
-
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ message: 'Email já cadastrado' });
-
     const token = uuidv4();
-    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48h
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
 
-    await Invite.deleteMany({ email, used: false });
-    await Invite.create({ email, token, invitedBy: req.user.id, expiresAt });
+    await Invite.create({ token, invitedBy: req.user.id, expiresAt });
 
     const inviteLink = `${process.env.CLIENT_URL}/register/${token}`;
-
-    try {
-      await sendInviteEmail(email, inviteLink, req.user.name);
-      res.json({ message: 'Convite enviado por email', inviteLink });
-    } catch {
-      // Email falhou, mas retorna o link mesmo assim
-      res.json({ message: 'Convite criado (email não enviado, use o link)', inviteLink });
-    }
+    res.json({ message: 'Link de cadastro gerado', inviteLink });
   } catch {
     res.status(500).json({ message: 'Erro interno' });
   }

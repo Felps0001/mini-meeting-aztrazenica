@@ -6,7 +6,6 @@ import './AdminUsers.css';
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteResult, setInviteResult] = useState(null);
   const [error, setError] = useState('');
@@ -22,11 +21,10 @@ const AdminUsers = () => {
     setInviteResult(null);
     setInviteLoading(true);
     try {
-      const { data } = await api.post('/users/invite', { email: inviteEmail });
+      const { data } = await api.post('/users/invite');
       setInviteResult({ type: 'success', message: data.message, link: data.inviteLink });
-      setInviteEmail('');
     } catch (err) {
-      setInviteResult({ type: 'error', message: err.response?.data?.message || 'Erro ao enviar convite' });
+      setInviteResult({ type: 'error', message: err.response?.data?.message || 'Erro ao gerar link' });
     } finally {
       setInviteLoading(false);
     }
@@ -66,17 +64,10 @@ const AdminUsers = () => {
 
         {/* Convidar usuário */}
         <div className="invite-section">
-          <h3>Convidar novo usuário</h3>
+          <h3>Gerar link de cadastro</h3>
           <form onSubmit={handleInvite} className="invite-form">
-            <input
-              type="email"
-              value={inviteEmail}
-              onChange={e => setInviteEmail(e.target.value)}
-              placeholder="email@exemplo.com"
-              required
-            />
             <button type="submit" className="btn-primary" disabled={inviteLoading}>
-              {inviteLoading ? 'Enviando...' : 'Enviar convite'}
+              {inviteLoading ? 'Gerando...' : '🔗 Gerar link'}
             </button>
           </form>
           {inviteResult && (
