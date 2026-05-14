@@ -1,28 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-import Navbar from '../components/Navbar';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import './Dashboard.css';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
+import Navbar from "../components/Navbar";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import "./Dashboard.css";
 
 const Dashboard = () => {
   const { user, isAdmin } = useAuth();
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    api.get('/meetings')
-      .then(res => setMeetings(res.data))
-      .catch(() => setError('Erro ao carregar meetings'))
+    api
+      .get("/meetings")
+      .then((res) => setMeetings(res.data))
+      .catch(() => setError("Erro ao carregar meetings"))
       .finally(() => setLoading(false));
   }, []);
 
   const totalMeetings = meetings.length;
-  const activeMeetings = meetings.filter(m => m.status === 'ativo').length;
-  const totalAttendees = meetings.reduce((acc, m) => acc + m.attendees.length, 0);
+  const activeMeetings = meetings.filter((m) => m.status === "ativo").length;
+  const totalAttendees = meetings.reduce(
+    (acc, m) => acc + m.attendees.length,
+    0,
+  );
 
   return (
     <div className="app-layout">
@@ -31,7 +35,9 @@ const Dashboard = () => {
         <div className="page-header">
           <h1>Olá, {user?.name} 👋</h1>
           <p className="page-subtitle">
-            {isAdmin ? 'Visão geral de todos os mini-meetings' : 'Seus mini-meetings'}
+            {isAdmin
+              ? "Visão geral de todos os mini-meetings"
+              : "Seus mini-meetings"}
           </p>
         </div>
 
@@ -61,7 +67,9 @@ const Dashboard = () => {
 
         <div className="section-header">
           <h2>Meetings Recentes</h2>
-          <Link to="/meetings/new" className="btn-primary">+ Novo Meeting</Link>
+          <Link to="/meetings/new" className="btn-primary">
+            + Novo Meeting
+          </Link>
         </div>
 
         {error && <div className="error-msg">{error}</div>}
@@ -71,16 +79,26 @@ const Dashboard = () => {
         ) : meetings.length === 0 ? (
           <div className="empty-state">
             <p>Nenhum meeting ainda.</p>
-            <Link to="/meetings/new" className="btn-primary">Criar primeiro meeting</Link>
+            <Link to="/meetings/new" className="btn-primary">
+              Criar primeiro meeting
+            </Link>
           </div>
         ) : (
           <div className="meetings-grid">
-            {meetings.slice(0, 6).map(meeting => (
-              <Link to={`/meetings/${meeting._id}`} key={meeting._id} className="meeting-card">
+            {meetings.slice(0, 6).map((meeting) => (
+              <Link
+                to={`/meetings/${meeting._id}`}
+                key={meeting._id}
+                className="meeting-card"
+              >
                 <div className="meeting-card-header">
-                  <span className={`status-badge status-${meeting.status}`}>{meeting.status}</span>
+                  <span className={`status-badge status-${meeting.status}`}>
+                    {meeting.status}
+                  </span>
                   <span className="meeting-date">
-                    {format(new Date(meeting.date), "dd 'de' MMM", { locale: ptBR })}
+                    {format(new Date(meeting.date), "dd 'de' MMM", {
+                      locale: ptBR,
+                    })}
                   </span>
                 </div>
                 <h3 className="meeting-title">{meeting.title}</h3>
@@ -89,10 +107,13 @@ const Dashboard = () => {
                   <span>🕐 {meeting.startTime}</span>
                 </div>
                 {isAdmin && (
-                  <div className="meeting-organizer">👤 {meeting.organizer?.name}</div>
+                  <div className="meeting-organizer">
+                    👤 {meeting.organizer?.name}
+                  </div>
                 )}
                 <div className="meeting-attendees">
-                  👥 {meeting.attendees.length} participante{meeting.attendees.length !== 1 ? 's' : ''}
+                  👥 {meeting.attendees.length} participante
+                  {meeting.attendees.length !== 1 ? "s" : ""}
                 </div>
               </Link>
             ))}
