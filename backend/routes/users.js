@@ -23,7 +23,8 @@ router.post('/invite', authMiddleware, adminMiddleware, async (req, res) => {
 
     await Invite.create({ token, invitedBy: req.user.id, expiresAt });
 
-    const inviteLink = `${process.env.CLIENT_URL}/register/${token}`;
+    const baseUrl = (process.env.CLIENT_URL || '').replace(/\/$/, '');
+    const inviteLink = `${baseUrl}/register/${token}`;
     res.json({ message: 'Link de cadastro gerado', inviteLink });
   } catch {
     res.status(500).json({ message: 'Erro interno' });
