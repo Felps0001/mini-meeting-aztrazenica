@@ -26,3 +26,43 @@
   .invite-form { flex-direction: column; }
   .invite-form input { width: 100%; }
 }
+
+/* ====== BULK IMPORT ====== */
+.bulk-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+
+.bulk-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.bulk-results { margin-top: 20px; }
+
+.bulk-summary {
+  display: flex; gap: 16px; margin-bottom: 12px; font-size: 13px; font-weight: 700;
+}
+.bulk-ok { color: var(--success); }
+.bulk-err { color: var(--danger); }
+
+.bulk-table-wrap { overflow-x: auto; border-radius: var(--radius); }
+
+.bulk-table {
+  width: 100%; border-collapse: collapse;
+  background: var(--bg-card); border-radius: var(--radius);
+  border: 1px solid var(--border); font-size: 13px;
+}
+.bulk-table th {
+  padding: 10px 14px; text-align: left;
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .5px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(233,30,140,.06);
+}
+.bulk-table td {
+  padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.04);
+  vertical-align: middle;
+}
+.bulk-table tr:last-child td { border-bottom: none; }
+.bulk-row-ok td { color: var(--text-main); }
+.bulk-row-err td { color: var(--text-muted); opacity: .7; }
+.bulk-table code {
+  background: rgba(0,229,160,.12); color: var(--success);
+  padding: 2px 8px; border-radius: 6px; font-size: 13px; font-weight: 700;
+  letter-spacing: .5px;
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
 import "./AdminUsers.css";
@@ -9,6 +9,9 @@ const AdminUsers = () => {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteResult, setInviteResult] = useState(null);
   const [error, setError] = useState("");
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResults, setBulkResults] = useState(null);
+  const csvInputRef = useRef(null);
 
   const fetchUsers = () => {
     api
@@ -67,6 +70,55 @@ const AdminUsers = () => {
     alert("Link copiado!");
   };
 
+  const downloadTemplate = () => {
+    const csv = "nome,email\nJoão Silva,joao@email.com\nMaria Santos,maria@email.com";
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template-usuarios.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const parseCSV = (text) => {
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const nameIdx = headers.findIndex(h => h === 'nome' || h === 'name');
+    const emailIdx = headers.findIndex(h => h === 'email');
+    if (nameIdx === -1 || emailIdx === -1) return null;
+    return lines.slice(1)
+      .filter(l => l.trim())
+      .map(line => {
+        const cols = line.split(',').map(c => c.trim());
+        return { name: cols[nameIdx] || '', email: cols[emailIdx] || '' };
+      })
+      .filter(u => u.name && u.email);
+  };
+
+  const handleBulkImport = async (e) => {
+    const file = e.target.files[0];
+    if (!csvInputRef.current) return;
+    csvInputRef.current.value = '';
+    if (!file) return;
+    const text = await file.text();
+    const users = parseCSV(text);
+    if (users === null) return alert('CSV inválido. Use as colunas: nome, email');
+    if (users.length === 0) return alert('Nenhum usuário encontrado no arquivo.');
+    setBulkResults(null);
+    setBulkLoading(true);
+    try {
+      const { data } = await api.post('/users/bulk-import', { users });
+      setBulkResults(data.results);
+      fetchUsers();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Erro na importação');
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   return (
     <div className="app-layout">
       <Navbar />
@@ -101,6 +153,62 @@ const AdminUsers = () => {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+
+        {/* Importar CSV */}
+        <div className="invite-section">
+          <h3>Importar usuários via CSV</h3>
+          <p className="bulk-hint">Crie várias contas de uma vez. Cada usuário receberá uma senha temporária.</p>
+          <div className="bulk-actions">
+            <button className="btn-secondary" onClick={downloadTemplate}>
+              📄 Baixar template CSV
+            </button>
+            <button
+              className="btn-primary"
+              disabled={bulkLoading}
+              onClick={() => csvInputRef.current?.click()}
+            >
+              {bulkLoading ? 'Importando...' : '📥 Importar CSV'}
+            </button>
+            <input
+              ref={csvInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              style={{ display: 'none' }}
+              onChange={handleBulkImport}
+            />
+          </div>
+
+          {bulkResults && (
+            <div className="bulk-results">
+              <div className="bulk-summary">
+                <span className="bulk-ok">✅ {bulkResults.filter(r => r.status === 'created').length} criados</span>
+                <span className="bulk-err">❌ {bulkResults.filter(r => r.status === 'error').length} erros</span>
+              </div>
+              <div className="bulk-table-wrap">
+                <table className="bulk-table">
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Email</th>
+                      <th>Senha temporária</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bulkResults.map((r, i) => (
+                      <tr key={i} className={r.status === 'created' ? 'bulk-row-ok' : 'bulk-row-err'}>
+                        <td>{r.name}</td>
+                        <td>{r.email}</td>
+                        <td>{r.tempPassword ? <code>{r.tempPassword}</code> : '—'}</td>
+                        <td>{r.status === 'created' ? '✅ Criado' : `❌ ${r.message}`}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
